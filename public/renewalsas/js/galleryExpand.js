@@ -335,7 +335,7 @@
 
           // Add Navbar
           var navbar = $('<nav id="placeholder-navbar"></nav>');
-          var navWrapper = $('<div class="nav-wrapper"></div>');
+          var navWrapper = $('<div class="nav-wrapper cyan"></div>');
           var container = $('<div class="container"></div>');
           var backBtn = $('<button class="back-btn"><i class="material-icons">arrow_back</i><span>Back</span></button>');
           var originalNavColor = '';

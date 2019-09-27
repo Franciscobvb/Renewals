@@ -1,0 +1,39 @@
+ .ccicons div {
+    float: left;
+    width: 51px;
+    height: 33px;
+    margin-right: 4px;
+}
+
+.icon-visa, .icon-amex, .icon-disc, .icon-mast {
+    background: url('https://www.mynikken.com/modules/my-account-payment/assets/images/icons-ccards.jpg');
+    background-position-x: 0%;
+    background-position-y: 0%;
+}
+
+.icon-visa {
+    background-position: 0 -32px;
+}
+
+.icon-amex {
+    background-position: -54px -32px;
+}
+
+.icon-disc {
+    background-position: -108px -32px;
+}
+
+.icon-mast {
+    background-position: -163px -32px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number] {
+    -moz-appearance:textfield; /* Firefox */
+}
