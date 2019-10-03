@@ -3,6 +3,7 @@ $(document).ready(function() {
     $('#securityCode').keypress(validateNumber);
     $('#expireMonth').keypress(validateNumber);
     $('#expireYear').keypress(validateNumber);
+    $('#zipCode').keypress(validateNumber);
 });
 
 function validateNumber(event) {
@@ -12,7 +13,7 @@ function validateNumber(event) {
     } 
     else if (key < 48 || key > 57) {
         return false;
-    } 
+    }
     else {
         return true;
     }
@@ -31,3 +32,12 @@ function validateLengtSecureCode(){
         M.toast({html: 'THE SIZE OF THE PIN IS INCORRECT, THE CORRECT SIZE IS OF 3 NUMBERS', classes: 'rounded'});
     }
 }
+
+$("input:checkbox").click(function(){
+    if($(this).prop('checked')){
+        $('#continuePayment').removeAttr("disabled");
+    }
+    else{
+        $("#continuePayment").attr("disabled", true);
+    }
+});

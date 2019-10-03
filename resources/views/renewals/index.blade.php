@@ -12,6 +12,64 @@
         <link href="{{asset('renewalsas/css/gallery-materialize.css')}}" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link rel="stylesheet" href="{{asset('renewalsas/css/custom.css')}}">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.all.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.css">
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.worldpay.com/v1/worldpay.js"></script>
+        <script>
+            $(function () {
+                var worldPayKey = "<?php echo config('worldpay.sandbox.service'); ?>";
+                var form = document.getElementById('renewalForm');
+                Worldpay.useOwnForm({
+                    'clientKey': worldPayKey,
+                    'form': form,
+                    'reusable': false,
+                    'callback': function (status, response) {
+                        if (response.error) {
+                            var error = response.error.message.length;
+                            if(error > 0 ){
+                                Swal.fire(
+                                    'Validate the follow payment information:',
+                                    response.error.message.toString(),
+                                    'error'
+                                )
+                            }
+                        } 
+                        else {
+                            $("#continuePayment").attr("disabled", true);
+                            var token = response.token;
+                            Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
+                            var data = $('#renewalForm').serialize();
+                            $.ajax({
+                                type: 'POST',
+                                url: 'charge',
+                                data: data,
+                                success: function(Result) {
+                                    if(Result.paymentStatus == 'SUCCESS' || Result.paymentStatus == 'success'){
+                                        $('#renewalForm').trigger("reset");
+                                        swal.fire({
+                                            title: Result.paymentStatus,
+                                            text: "Payment made successfully!!",
+                                            showCancelButton: false,
+                                            type: 'success',
+                                        }).then((res) => {
+                                            document.location.href = '/renewals/'
+                                        });
+                                    }
+                                    else{
+                                        Swal.fire({
+                                            type: 'error',
+                                            title: Result.paymentStatus,
+                                            text: 'Payment declined',
+                                        })
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        </script>
     </head>
     <body>
         <nav class="nav-extended">
@@ -100,13 +158,13 @@
                 <div class="gallery row">
                     <div class="col l12 m12 s12 gallery-item gallery-expand gallery-filter sintel">
                         <div class="gallery-curve-wrapper">
-                            <div class="gallery-header">
+                            <div class="gallery-header red lighten-3">
                                 <i class="material-icons">report_problem</i>
                                 <span>Your renewal date is on November 17, 2019. <a >Click here to renew.</a></span>
                             </div>
                             <div class="gallery-body">
-                                <form action="createXML" method="POST" id="paymentForm">
-                                    <input type="text" value="{{{ Session::token() }}}" id="token">
+                                <form action="charge" method="post" id="renewalForm" enctype="multipart/form-data" autocomplete="off">
+                                    <input type="hidden" name="_token" id="_token" value="{{csrf_token()}}">
                                     <div class="title-wrapper">
                                         <h6>Thank you for chosing to renew your NikkenDistributionship</h6>
                                         <hr>
@@ -130,28 +188,28 @@
                                             <div class="row">
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">account_circle</i>
-                                                    <input id="billingContact" type="text" class="validate">
+                                                    <input id="billingContact" name="billingContact" type="text" value="" class="validate" data-worldpay="name">
                                                     <label for="billingContact">Billing Contact</label>
                                                     <hr>
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">location_on</i>
-                                                    <input id="street" type="text" class="validate">
+                                                    <input id="street" name="street" type="text" class="validate" required>
                                                     <label for="street">Street</label>
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">location_city</i>
-                                                    <input id="city" type="text" class="validate">
+                                                    <input id="city" name="city" type="text" class="validate" required>
                                                     <label for="city">City</label>
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">domain</i>
-                                                    <input id="state" type="text" class="validate">
+                                                    <input id="state" name="state" type="text" class="validate" required>
                                                     <label for="state">State</label>
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">fingerprint</i>
-                                                    <input id="zipCode" type="text" class="validate">
+                                                    <input id="zipCode" name="zipCode" type="text" class="validate" required>
                                                     <label for="zipCode">Zip Code</label>
                                                 </div>
                                             </div>
@@ -173,13 +231,13 @@
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <i class="material-icons prefix">filter_1</i>
-                                                    <input id="cardNumber" type="text" class="validate" maxlength="16" minlength="16" onblur="validateLengtCard()">
+                                                    <input id="cardNumber" name="cardNumber" type="text" class="validate" maxlength="16" minlength="16" onblur="validateLengtCard()" data-worldpay="number">
                                                     <label for="cardNumber">Card Number</label>
                                                 </div>
                                                 <div class="input-field col s12">
                                                     <div class="input-field col s10">
                                                         <i class="material-icons prefix">fiber_pin</i>
-                                                        <input id="securityCode" type="text" class="validate" maxlength="3" minlength="3" onblur="validateLengtSecureCode()">
+                                                        <input id="securityCode" name="securityCode" type="text" class="validate" maxlength="3" minlength="3" onblur="validateLengtSecureCode()" data-worldpay="cvc">
                                                         <label for="securityCode">Security Code</label>
                                                     </div>
                                                     <div class="input-field col s2">
@@ -189,12 +247,12 @@
                                                 <div class="input-field col s12">
                                                     <div class="input-field col s6">
                                                         <i class="material-icons prefix">event</i>
-                                                        <input id="expireMonth" type="text" maxlength="2" minlength="2">
+                                                        <input id="expireMonth" name="expireMonth" class="validate" type="text" maxlength="2" minlength="2" data-worldpay="exp-month">
                                                         <label for="expireMonth">Expire Month</label>
                                                     </div>
                                                     <div class="input-field col s6">
                                                         <i class="material-icons prefix">event_available</i>
-                                                        <input id="expireYear" type="text" maxlength="4" minlength="4">
+                                                        <input id="expireYear" name="expireYear" class="validate" type="text" maxlength="4" minlength="4" data-worldpay="exp-year">
                                                         <label for="expireYear">Expire Year</label>
                                                     </div>
                                                 </div>
@@ -204,14 +262,14 @@
                                     <div class="title-wrapper">
                                         <p>
                                             <label>
-                                                <input type="checkbox" name="termsPoliciesProcedures"/>
+                                                <input type="checkbox" name="termsPoliciesProcedures" id="termsPoliciesProcedures"/>
                                                 <span>I agree to the current terms of <a href="http://library.nikken.com/document/?n=membership-agreement&lng=en" target="_new">the Consultant Agreement</a> and <a href="http://library.nikken.com/document/?n=policies-and-procedures-2016&lng=en" target="_new"> Policies and Procedures</a>. </span>
                                             </label>
                                         </p>
                                         <hr>
                                     </div>
                                     <div class="title-wrapper center">
-                                        <button class="btn waves-effect waves-light green" type="submit" name="action">Coninue
+                                        <button class="btn waves-effect waves-light green" id="continuePayment" name="continuePayment" type="submit" disabled name="action">Coninue
                                             <i class="material-icons right">check</i>
                                         </button>
                                         &nbsp;&nbsp;
@@ -231,10 +289,8 @@
                     </div>
                 </div>
             </div>
-            
         </div>
     </body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="{{asset('renewalsas/js/imagesloaded.pkgd.min.js')}}"></script>
     <script src="{{asset('renewalsas/js/masonry.pkgd.min.js')}}"></script>
     <script src="{{asset('renewalsas/js/materialize.min.js')}}"></script>
