@@ -1,6 +1,6 @@
 <?php
 
-Route::get('renewals/', "renewals\RenewalsController@index");
+Route::get('renewals/{associateid}', "renewals\RenewalsController@index");
 Route::post('renewals/charge', function (\Illuminate\Http\Request $request) {
    
     $_token = $request->input('_token');
@@ -41,6 +41,17 @@ Route::post('renewals/charge', function (\Illuminate\Http\Request $request) {
         ));
         if ($response['paymentStatus'] === 'SUCCESS') {
             $worldpayOrderCode = $response['orderCode'];
+
+            // Start sending a mail to confirm the payment of renewal
+            $data = array(
+                'name' => "$billingContact",
+            );
+            Mail::send('renewals.emails.email', $data, function ($message) {
+                $message->from('fmelchor@nikkenlatam.com', 'My Nikken');
+                $message->to('franciscoshark385@gmail.com')->subject('My Nikken membership renewal');
+            });
+            // End sending a mail to confirm the payment of renewal
+
             return \Response::json($response);
         } else {
             // The card has been declined

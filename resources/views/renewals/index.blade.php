@@ -36,6 +36,7 @@
                             }
                         } 
                         else {
+                            M.toast({html: 'PROCESSING PAYMENT...', classes: 'rounded'});
                             $("#continuePayment").attr("disabled", true);
                             var token = response.token;
                             Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
@@ -165,6 +166,7 @@
                             <div class="gallery-body">
                                 <form action="charge" method="post" id="renewalForm" enctype="multipart/form-data" autocomplete="off">
                                     <input type="hidden" name="_token" id="_token" value="{{csrf_token()}}">
+                                    <input type="text" name="_token" id="_token" value="{{ $response[0]->Associateid }}">
                                     <div class="title-wrapper">
                                         <h6>Thank you for chosing to renew your NikkenDistributionship</h6>
                                         <hr>
